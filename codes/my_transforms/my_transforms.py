@@ -113,7 +113,6 @@ class Affine(object):
         if isinstance(degrees, numbers.Number):
             self.degrees = degrees
 
-
         if translate is not None:
             assert isinstance(translate, (tuple, list)) and len(translate) == 2, \
                 "translate should be a list or tuple and it must be of length 2."
@@ -121,7 +120,6 @@ class Affine(object):
                 if not (0.0 <= t <= 1.0):
                     raise ValueError("translation values should be between 0 and 1")
         self.translate = translate
-
 
         self.scale = scale
 
@@ -845,6 +843,7 @@ class LinearTransformation(object):
         format_string = self.__class__.__name__ + '('
         format_string += (str(self.transformation_matrix.numpy().tolist()) + ')')
         return format_string
+
 class ColorJitter(object):
     """Randomly change the brightness, contrast and saturation of an image.
 

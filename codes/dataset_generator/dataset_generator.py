@@ -34,19 +34,18 @@ class DatasetGenerator:
         average_numpy = np.zeros((400, 19, 2))
 
         # 원본 데이터 폴더
-        original_data_gt_files_path = os.path.join(DataInfo.gp_path, r'original_data/AnnotationsByMD')
-        junior_senior_folders = os.listdir(original_data_gt_files_path)
+        junior_senior_folders = os.listdir(DataInfo.original_gt_folder_path)
         junior_senior_folders.sort()
 
         # 원본 데이터 폴더에서 txt 파일을 읽어 numpy 배열로 저장
         # class는 저장하지 않고 건너뜀
         for junior_senior_folder in junior_senior_folders:
-            original_files = os.listdir(os.path.join(original_data_gt_files_path, junior_senior_folder))
+            original_files = os.listdir(os.path.join(DataInfo.original_gt_folder_path, junior_senior_folder))
             original_files.sort()
 
             points_numpy = np.zeros((400, 19, 2))
             for original_file_index, original_file in enumerate(original_files):
-                file = open(os.path.join(original_data_gt_files_path, junior_senior_folder, original_file))
+                file = open(os.path.join(DataInfo.original_gt_folder_path, junior_senior_folder, original_file))
                 file_lines = file.readlines()
                 file.close()
 
@@ -76,57 +75,42 @@ class DatasetGenerator:
                 average_numpy[gt_file_index][landmark_index] = average_point
 
         # save
-        gt_folder = os.path.join(DataInfo.gp_path, r'GT')
-        os.makedirs(gt_folder, exist_ok=True)
-        np.save(os.path.join(gt_folder, 'landmark_gt_numpy.npy'), average_numpy)
+        os.makedirs(DataInfo.landmark_gt_numpy_folder_path, exist_ok=True)
+        np.save(DataInfo.landmark_gt_numpy_path, average_numpy)
 
     @classmethod
     def generate_image_folder(cls):
         r"""
-            원본 이미지를 train_val_data 폴더의 train, test 폴더에 복사
+            원본 이미지를 train_test_data 폴더의 train, test 폴더에 복사
         """
-        # 원본 이미지가 저장되어 있는 폴더
-        original_images_folder = os.path.join(DataInfo.gp_path, r'original_data/original_images')
-        images_folders = os.listdir(original_images_folder)
+        # 원본 이미지 폴더(test1, test2, train) 경로를 리스트로 저장
+        images_folders = os.listdir(DataInfo.raw_image_folder_path)
         images_folders.sort()
 
         # 이미지를 이동시킬 폴더
-        train_val_data_folder = os.path.join(DataInfo.gp_path, r'train_test_data')
-        if not os.path.exists(train_val_data_folder):
-            os.makedirs(train_val_data_folder)
+        if not os.path.exists(DataInfo.train_test_image_folder_path):
+            os.makedirs(DataInfo.train_test_image_folder_path)
 
         for images_folder in images_folders:
-            # train, val1, val2 폴더 각각 생성
-            data_type = images_folder[:images_folder.index('_')]
-            if not os.path.exists(os.path.join(train_val_data_folder, data_type, '0img')):
-                os.makedirs(os.path.join(train_val_data_folder, data_type, '0img'))
+            # Test1, Test2, Train 폴더 각각 생성
+            data_type = images_folder[:5].lower()
+            input_image_folder_path = os.path.join(DataInfo.train_test_image_folder_path, data_type, 'input', 'no_label')
+            if not os.path.exists(input_image_folder_path):
+                os.makedirs(input_image_folder_path)
 
-            images = os.listdir(os.path.join(original_images_folder, images_folder))
+            images = os.listdir(os.path.join(DataInfo.raw_image_folder_path, images_folder))
             images.sort()
 
             # 이미지 복사
             for image in images:
-                shutil.copy(os.path.join(original_images_folder, images_folder, image),
-                            os.path.join(train_val_data_folder, data_type, '0img', image))
-
-    @classmethod
-    def generate_heatmap_with_numpy(cls, image_path, gt_numpy):
-        heatmap_generator = AnisotropicLaplaceHeatmapGenerator()
-
-        for i, gt in enumerate(tqdm(gt_numpy)):
-            for j, landmark_point in enumerate(gt):
-                heatmap_img = heatmap_generator.get_heatmap_image(landmark_point)
-                landmark_gt_path = os.path.join(image_path, str(j + 1 + 100))
-                os.makedirs(landmark_gt_path, exist_ok=True)
-
-                image_name = str(i + 1).zfill(5)
-                heatmap_img.save(os.path.join(landmark_gt_path, image_name + '.png'))
+                shutil.copy(os.path.join(DataInfo.raw_image_folder_path, images_folder, image),
+                            os.path.join(input_image_folder_path, image))
 
     @classmethod
     def generate_heatmap(cls):
         r"""
-            generate gt image at 'train_test_data/
-             - gt 이미지를 train, val1, val2 폴더에 랜드마크별로 저장
+            generate gt image at 'train_test_image/
+             - gt 이미지를 train, test1, test2 폴더에 랜드마크별로 저장
 
             params:
                 new_size: 새로 생성할 GT 이미지 크기. [W, H]
@@ -137,12 +121,21 @@ class DatasetGenerator:
                                     300~399: test2 데이터
         """
 
-        train_image_path = os.path.join(DataInfo.gp_path, 'train_test_data/train')
-        test1_image_path = os.path.join(DataInfo.gp_path, 'train_test_data/test1')
-        test2_image_path = os.path.join(DataInfo.gp_path, 'train_test_data/test2')
+        heatmap_generator = AnisotropicLaplaceHeatmapGenerator()
 
-        landmark_gt_numpy = np.load(os.path.join(DataInfo.gp_path, 'GT/landmark_gt_numpy.npy'))
+        landmark_gt_numpy = np.load(DataInfo.landmark_gt_numpy_path)
+        data_type_and_numpy_zip = zip(['train', 'test1', 'test2'],
+                                      [landmark_gt_numpy[0:150],
+                                       landmark_gt_numpy[150:300],
+                                       landmark_gt_numpy[300:400]])
 
-        cls.generate_heatmap_with_numpy(train_image_path, landmark_gt_numpy[0:150])
-        cls.generate_heatmap_with_numpy(test1_image_path, landmark_gt_numpy[150:300])
-        cls.generate_heatmap_with_numpy(test2_image_path, landmark_gt_numpy[300:400])
+        for data_type, gt_numpy in data_type_and_numpy_zip:
+            image_path = os.path.join(DataInfo.train_test_image_folder_path, data_type)
+            for i, gt in enumerate(tqdm(gt_numpy)):
+                for j, landmark_point in enumerate(gt):
+                    heatmap_img = heatmap_generator.get_heatmap_image(landmark_point)
+                    landmark_gt_path = os.path.join(image_path, 'heatmap', "{:0>2d}".format(j + 1))
+                    os.makedirs(landmark_gt_path, exist_ok=True)
+
+                    image_name = str(i + 1).zfill(5)
+                    heatmap_img.save(os.path.join(landmark_gt_path, image_name + '.png'))

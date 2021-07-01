@@ -14,8 +14,24 @@ class DataInfo:
     # JBNU_medical_data folder
     gp_path = os.path.dirname(p_path)
 
-    # model save path
-    model_save_path = os.path.join(gp_path, "saved_models")
+    # paths
+    original_data_folder_path = os.path.join(gp_path, "original_data")
+    original_gt_folder_path = os.path.join(original_data_folder_path, 'AnnotationsByMD')
+    raw_image_folder_path = os.path.join(original_data_folder_path, "RawImage")
+    train_test_image_folder_path = os.path.join(gp_path, "train_test_image")
+    saved_model_folder_path = os.path.join(gp_path, "saved_models")
+    landmark_gt_numpy_folder_path = os.path.join(gp_path, 'GT')
+    landmark_gt_numpy_path = os.path.join(landmark_gt_numpy_folder_path, 'landmark_gt_numpy.npy')
+    tensorboard_path = os.path.join(gp_path, "runs")
+
+    # test result paths
+    result_image_folder_path = os.path.join(gp_path, 'images', 'result_image')
+    output_image_save_path = os.path.join(result_image_folder_path, 'output')
+    gt_image_save_path = os.path.join(result_image_folder_path, 'gt')
+
+    result_heatmap_image_folder_path = os.path.join(gp_path, 'images', 'result_heatmap_image')
+    output_heatmap_image_save_path = os.path.join(result_heatmap_image_folder_path, 'output')
+    gt_heatmap_image_save_path = os.path.join(result_heatmap_image_folder_path, 'gt')
 
     # width, height
     original_image_size = [1935, 2400]

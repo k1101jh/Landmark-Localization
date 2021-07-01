@@ -30,16 +30,28 @@ from enums.perturbator_enum import PerturbatorEnum
 class MyDataset(Dataset):
     def __init__(self, dataset_type=DatasetEnum.TEST1, perturbation_ratio=None, aug=True):
 
-        init_trans = transforms.Compose([transforms.Resize((DataInfo.resized_image_size[1], DataInfo.resized_image_size[0])),
+        self.init_trans = transforms.Compose([transforms.Resize((DataInfo.resized_image_size[1], DataInfo.resized_image_size[0])),
                                          transforms.Grayscale(1),
                                          transforms.ToTensor(),
                                          ])
 
+        self.col_trans = my_transforms.Compose([my_transforms.ToPILImage(),
+                                           my_transforms.ColorJitter(brightness=1,
+                                                                     contrast=1,
+                                                                     saturation=1,
+                                                                     hue=0.5
+                                                                     ),
+                                           my_transforms.ToTensor(),
+                                           ])
+
         self.dataset_type = dataset_type
-        self.datainfo = torchvision.datasets.ImageFolder(
-            root=os.path.join(DataInfo.gp_path, 'train_test_data', self.dataset_type.name.lower()), transform=init_trans)
-        self.mask_num = len(self.datainfo.classes) - 1
-        self.data_num = int(len(self.datainfo) / len(self.datainfo.classes))
+        self.input_image_folder = torchvision.datasets.ImageFolder(
+            root=os.path.join(DataInfo.train_test_image_folder_path, self.dataset_type.name.lower(), 'input'),
+            transform=self.init_trans)
+        self.heatmap_image_folder = torchvision.datasets.ImageFolder(
+            root=os.path.join(DataInfo.train_test_image_folder_path, self.dataset_type.name.lower(), 'heatmap'),
+            transform=self.init_trans)
+        self.data_num = len(self.input_image_folder)
         self.aug = aug
         self.width = DataInfo.resized_image_size[0]
         self.height = DataInfo.resized_image_size[1]
@@ -58,7 +70,7 @@ class MyDataset(Dataset):
         return self.data_num
 
     def __getitem__(self, idx):
-        image, _ = self.datainfo.__getitem__(idx)
+        input_image, _ = self.input_image_folder.__getitem__(idx)
 
         if self.aug:
             # get random perturbator index by percentage
@@ -74,31 +86,14 @@ class MyDataset(Dataset):
             trans_rand = [random.uniform(0, 0.05), random.uniform(0, 0.05)]
             scale_rand = random.uniform(0.9, 1.1)
 
-            # trans img with masks
-            self.input_trans = my_transforms.Compose([my_transforms.ToPILImage(),
+            # trans img
+            self.affine_trans = my_transforms.Compose([my_transforms.ToPILImage(),
                                                       my_transforms.Affine(angle,
                                                                            translate=trans_rand,
                                                                            scale=scale_rand,
                                                                            fillcolor=0),
                                                       my_transforms.ToTensor(),
                                                       ])
-
-            self.mask_trans = my_transforms.Compose([my_transforms.ToPILImage(),
-                                                     my_transforms.Affine(angle,
-                                                                          translate=trans_rand,
-                                                                          scale=scale_rand,
-                                                                          fillcolor=0),
-                                                     my_transforms.ToTensor(),
-                                                     ])
-
-            self.col_trans = my_transforms.Compose([my_transforms.ToPILImage(),
-                                                    my_transforms.ColorJitter(brightness=random.random(),
-                                                                              contrast=random.random(),
-                                                                              saturation=random.random(),
-                                                                              hue=random.random() / 2
-                                                                              ),
-                                                    my_transforms.ToTensor(),
-                                                    ])
 
             perturbator = None
             if perturbator_idx == PerturbatorEnum.BLACKOUT:
@@ -115,25 +110,25 @@ class MyDataset(Dataset):
                 pass
 
             if perturbator is not None:
-                image = perturbator.perturb(image)
+                input_image = perturbator.perturb(input_image)
 
-            image = self.col_trans(image)
-            image = self.input_trans(image)
+            input_image = self.col_trans(input_image)
+            input_image = self.affine_trans(input_image)
 
-            mask = torch.empty(self.mask_num, image.shape[1], image.shape[2], dtype=torch.float)
-            for k in range(0, self.mask_num):
-                m, _ = self.datainfo.__getitem__(idx + (self.data_num * (1 + k)))
-                mask[k] = self.mask_trans(m)
+            mask = torch.empty(DataInfo.landmark_class_num, input_image.shape[1], input_image.shape[2], dtype=torch.float)
+            for landmark_idx in range(0, DataInfo.landmark_class_num):
+                heatmap_image, _ = self.heatmap_image_folder.__getitem__(self.data_num * landmark_idx + idx)
+                mask[landmark_idx] = self.affine_trans(heatmap_image)
 
         else:
-            mask = torch.empty(self.mask_num, image.shape[1], image.shape[2], dtype=torch.float)
-            for k in range(0, self.mask_num):
-                m, _ = self.datainfo.__getitem__(idx + (self.data_num * (1 + k)))
-                mask[k] = m
+            mask = torch.empty(DataInfo.landmark_class_num, input_image.shape[1], input_image.shape[2], dtype=torch.float)
+            for landmark_idx in range(0, DataInfo.landmark_class_num):
+                heatmap_image, _ = self.heatmap_image_folder.__getitem__(self.data_num * landmark_idx + idx)
+                mask[landmark_idx] = heatmap_image
 
         if self.dataset_type == DatasetEnum.TRAIN:
             mask = torch.pow(mask, DataInfo.pow_heatmap)
 
         mask = mask / mask.max()
 
-        return [image, mask]
+        return [input_image, mask]

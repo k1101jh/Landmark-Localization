@@ -48,7 +48,7 @@ class Model:
         self.set_network()
 
         if self.use_tensorboard:
-            self.writer = SummaryWriter(os.path.join(DataInfo.gp_path, 'runs', self.model_name))
+            self.writer = SummaryWriter(os.path.join(DataInfo.tensorboard_path, self.model_name))
 
     def set_device(self):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self.device_num)
@@ -210,18 +210,15 @@ class Model:
 
     def test(self, model_path, save_result_images=False, dataset_type=DatasetEnum.TEST1):
         # generate result image save path
-        result_image_save_path = os.path.join(DataInfo.gp_path, 'images', 'result_img', 'prediction_img')
-        gt_image_save_path = os.path.join(DataInfo.gp_path, 'images', 'result_img', 'gt_img')
-        result_heatmap_image_save_path = os.path.join(DataInfo.gp_path, 'images', 'result_heatmap_img',
-                                                      'prediction_img')
-        gt_heatmap_image_save_path = os.path.join(DataInfo.gp_path, 'images', 'result_heatmap_img', 'gt_img')
-
         if save_result_images:
-            os.makedirs(result_image_save_path, exist_ok=True)
-            os.makedirs(gt_image_save_path, exist_ok=True)
+            os.makedirs(DataInfo.output_image_save_path, exist_ok=True)
+            os.makedirs(DataInfo.gt_image_save_path, exist_ok=True)
+            os.makedirs(DataInfo.output_heatmap_image_save_path, exist_ok=True)
+            os.makedirs(DataInfo.gt_heatmap_image_save_path, exist_ok=True)
+
             for image_idx in range(0, 400):
-                os.makedirs(os.path.join(result_heatmap_image_save_path, str(image_idx + 1)), exist_ok=True)
-                os.makedirs(os.path.join(gt_heatmap_image_save_path, str(image_idx + 1)), exist_ok=True)
+                os.makedirs(os.path.join(DataInfo.output_heatmap_image_save_path, str(image_idx + 1)), exist_ok=True)
+                os.makedirs(os.path.join(DataInfo.gt_heatmap_image_save_path, str(image_idx + 1)), exist_ok=True)
 
         test_start_time = time.time()
 
@@ -236,7 +233,7 @@ class Model:
 
         # load gt numpy
         # [image_num, width, height]
-        gt_numpy = np.load(os.path.join(DataInfo.gp_path, 'GT/landmark_gt_numpy.npy'), allow_pickle=True)
+        gt_numpy = np.load(DataInfo.landmark_gt_numpy_path, allow_pickle=True)
         image_start_idx = 0
         if dataset_type == DatasetEnum.TEST1:
             image_start_idx = 150
@@ -325,10 +322,10 @@ class Model:
 
                         landmark_heatmap_gt = torch.pow(landmark_heatmap_gt, 7)
                         landmark_heatmap_gt /= landmark_heatmap_gt.max()
-                        plt.imsave(os.path.join(result_heatmap_image_save_path, str(image_index + 1),
+                        plt.imsave(os.path.join(DataInfo.output_heatmap_image_save_path, str(image_index + 1),
                                                 str(landmark_count + 1) + ".png"),
                                    landmark_heatmap, cmap='gray')
-                        plt.imsave(os.path.join(gt_heatmap_image_save_path, str(image_index + 1),
+                        plt.imsave(os.path.join(DataInfo.gt_heatmap_image_save_path, str(image_index + 1),
                                                 str(landmark_count + 1) + ".png"),
                                    landmark_heatmap_gt, cmap='gray')
 
@@ -336,8 +333,8 @@ class Model:
                         count = count + 1
 
                 if save_result_images:
-                    cv.imwrite(os.path.join(result_image_save_path, str(image_index + 1) + '.png'), result_img)
-                    cv.imwrite(os.path.join(gt_image_save_path, str(image_index + 1) + '.png'), gt_img)
+                    cv.imwrite(os.path.join(DataInfo.output_image_save_path, str(image_index + 1) + '.png'), result_img)
+                    cv.imwrite(os.path.join(DataInfo.gt_image_save_path, str(image_index + 1) + '.png'), gt_img)
 
                 if self.use_tensorboard:
                     fig = plt.figure(figsize=(4, 5))

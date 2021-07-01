@@ -24,13 +24,13 @@ def run():
 
         # Input model folder name
         print("model list: ")
-        if os.path.exists(DataInfo.model_save_path):
-            for folder in os.listdir(DataInfo.model_save_path):
+        if os.path.exists(DataInfo.saved_model_folder_path):
+            for folder in os.listdir(DataInfo.saved_model_folder_path):
                 print('  ', folder)
         else:
             print('None')
         model_name = input("\nInput model folder name >> ")
-        model_folder_path = os.path.join(DataInfo.model_save_path, model_name)
+        model_folder_path = os.path.join(DataInfo.saved_model_folder_path, model_name)
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
         else:
