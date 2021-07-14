@@ -1,4 +1,4 @@
-from enums.perturbator_enum import PerturbatorEnum
+from my_enums.perturbator_enum import PerturbatorEnum
 
 yes_answers = ["Yes", "yes", "Y", "y"]
 no_answers = ["No", "no", "N", "n"]

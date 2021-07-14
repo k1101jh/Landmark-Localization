@@ -23,8 +23,8 @@ from perturbator.smoothing_perturbator import SmoothingPerturbator
 from perturbator.whiteout_perturbator import WhiteoutPerturbator
 from my_transforms import my_transforms
 from data_info.data_info import DataInfo
-from enums.dataset_enum import DatasetEnum
-from enums.perturbator_enum import PerturbatorEnum
+from my_enums.dataset_enum import DatasetEnum
+from my_enums.perturbator_enum import PerturbatorEnum
 
 
 class MyDataset(Dataset):

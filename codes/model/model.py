@@ -16,7 +16,7 @@ import scipy.io
 from tensorboardX import SummaryWriter
 
 from dataset.dataset import MyDataset
-from enums.dataset_enum import DatasetEnum
+from my_enums.dataset_enum import DatasetEnum
 from network.unet import UNet
 from network.attention_unet import AttentionUNet
 from data_info.data_info import DataInfo

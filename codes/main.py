@@ -2,7 +2,7 @@ import os
 import sys
 import torch
 
-from enums.dataset_enum import DatasetEnum
+from my_enums.dataset_enum import DatasetEnum
 from interface.functions import *
 from dataset_generator.dataset_generator import DatasetGenerator
 from model.model import Model
