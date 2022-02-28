@@ -41,7 +41,7 @@ class DataInfo:
     boxing_scheme = 1
 
     # model parameters
-    landmark_class_num = 19
+    num_landmark_class = 19
     batch_size = 2
     pow_heatmap = 7
     perturbation_scheme = [1, 1]

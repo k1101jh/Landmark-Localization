@@ -10,7 +10,7 @@ class ACloss(nn.Module):
         super(ACloss, self).__init__()
         self.height = DataInfo.resized_image_size[1]
         self.width = DataInfo.resized_image_size[0]
-        self.landmark_class_num = DataInfo.landmark_class_num
+        self.num_landmark_class = DataInfo.num_landmark_class
 
     def get_angle_matrix(self, inp_mat):
         np_array1 = inp_mat - [self.height / 2, self.width / 2]
@@ -41,9 +41,9 @@ class ACloss(nn.Module):
         angle_loss = 0.0
         dist_loss = 0.0
         for batch in range(target.size(0)):
-            output_matrix = np.zeros((self.landmark_class_num, 2))
-            target_matrix = np.zeros((self.landmark_class_num, 2))
-            for landmark_num in range(0, self.landmark_class_num):
+            output_matrix = np.zeros((self.num_landmark_class, 2))
+            target_matrix = np.zeros((self.num_landmark_class, 2))
+            for landmark_num in range(0, self.num_landmark_class):
                 output_image = output[batch][landmark_num]
                 output_image = output_image.cpu()
                 target_image = target[batch][landmark_num]

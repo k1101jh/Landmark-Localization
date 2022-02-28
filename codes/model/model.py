@@ -65,9 +65,9 @@ class Model:
     def set_network(self):
         n_input = 1
         if DataInfo.is_attention_unet:
-            self.model = AttentionUNet(n_input, DataInfo.landmark_class_num).to(self.device)
+            self.model = AttentionUNet(n_input, DataInfo.num_landmark_class).to(self.device)
         else:
-            self.model = UNet(n_input, DataInfo.landmark_class_num).to(self.device)
+            self.model = UNet(n_input, DataInfo.num_landmark_class).to(self.device)
 
     def load_saved_model(self):
         model_list = os.listdir(self.model_path)
@@ -278,7 +278,7 @@ class Model:
                     gt_img = cv.resize(gt_img, tuple(DataInfo.original_image_size),
                                        interpolation=cv.INTER_AREA)
 
-                for landmark_count in range(0, DataInfo.landmark_class_num):
+                for landmark_count in range(0, DataInfo.num_landmark_class):
                     landmark_heatmap = output[landmark_count]
                     landmark_heatmap = landmark_heatmap.cpu()
                     landmark_heatmap_gt = label[landmark_count]
@@ -348,7 +348,7 @@ class Model:
 
             tqdm_dataloader.set_description(
                 desc='accuracy: {:0.4f}'.format(count /
-                                                ((DataInfo.batch_size * data_index) * DataInfo.landmark_class_num)))
+                                                ((DataInfo.batch_size * (data_index + 1)) * DataInfo.num_landmark_class)))
 
         if self.use_tensorboard:
             self.writer.close()
@@ -372,17 +372,17 @@ class Model:
               "std: %.4f\t" % np.std(distance_numpy))
 
         # calculate accuracy by landmarks
-        distance_numpy = np.array(distance_list).reshape(-1, DataInfo.landmark_class_num)
-        landmark_point_numpy = np.asarray(landmark_point_list).reshape(-1, DataInfo.landmark_class_num)
-        accuracy_numpy = np.zeros((DataInfo.landmark_class_num, 4))
+        distance_numpy = np.array(distance_list).reshape(-1, DataInfo.num_landmark_class)
+        landmark_point_numpy = np.asarray(landmark_point_list).reshape(-1, DataInfo.num_landmark_class)
+        accuracy_numpy = np.zeros((DataInfo.num_landmark_class, 4))
 
-        for i in range(DataInfo.landmark_class_num):
+        for i in range(DataInfo.num_landmark_class):
             accuracy_numpy[i][0] = np.mean(distance_numpy[:, i] < mm_per_pixel * 2)
             accuracy_numpy[i][1] = np.mean(distance_numpy[:, i] < mm_per_pixel * 2.5)
             accuracy_numpy[i][2] = np.mean(distance_numpy[:, i] < mm_per_pixel * 3)
             accuracy_numpy[i][3] = np.mean(distance_numpy[:, i] < mm_per_pixel * 4)
 
-        for i in range(DataInfo.landmark_class_num):
+        for i in range(DataInfo.num_landmark_class):
             print("point num :%2d " % (i + 1), end=' ')
             for j in range(4):
                 print('%.4f\t' % (accuracy_numpy[i][j]), end=' ')
@@ -421,7 +421,7 @@ class Model:
 
         f.write('\n')
         f.write('\t\t2mm\t2.5mm\t3mm\t4mm\tmean\tstd\n')
-        for i in range(DataInfo.landmark_class_num):
+        for i in range(DataInfo.num_landmark_class):
             f.write("point num :%2d " % (i + 1) + '\t')
             for j in range(4):
                 f.write('%.4f\t' % (accuracy_numpy[i][j]))

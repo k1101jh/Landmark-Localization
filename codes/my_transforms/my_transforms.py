@@ -914,6 +914,7 @@ class ColorJitter(object):
         format_string += ', saturation={0}'.format(self.saturation)
         format_string += ', hue={0})'.format(self.hue)
         return format_string
+
 class RandomRotation(object):
     """Rotate the image by angle.
 
