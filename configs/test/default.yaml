@@ -1,0 +1,7 @@
+batch_size: 4
+num_workers: 24
+model_save_path: saved_models/${experiment_name}
+
+load_model_path: NULL
+save_result_images: True
+heatmap_threshold: 0.85

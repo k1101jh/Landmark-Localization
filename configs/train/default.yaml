@@ -1,0 +1,72 @@
+batch_size: 3
+num_workers: 24
+epochs: 1
+test_interval: 20
+save_interval: 20
+save_model: True
+model_save_path: saved_models/${experiment_name}
+profiling: True
+load_model_path: NULL
+
+num_pow_heatmap: 1
+
+# transform
+input_trans:
+  - _target_: torchvision.transforms.Resize
+    size:
+      - ${dataset.height}
+      - ${dataset.width}
+  - _target_: torchvision.transforms.Grayscale
+    num_output_channels: 1
+  # - _target_: torchvision.transforms.ToTensor
+
+colorjitter_trans:
+  # - _target_: torchvision.transforms.ToPILImage
+  - _target_: torchvision.transforms.ColorJitter
+    brightness: 0.8
+    contrast: 0.8
+    saturation: 0.8
+    hue: 0.4
+  # - _target_: torchvision.transforms.ToTensor
+
+affine_trans:
+  # - _target_: torchvision.transforms.ToPILImage
+  - _target_: torchvision.transforms.RandomAffine
+    degrees: 25
+    translate: [0.05, 0.05]
+    scale: [0.9, 1.1]
+    fill: 0
+  # - _target_: torchvision.transforms.ToTensor
+
+# perturbation
+perturbation_ratio:
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
+  - 0.2
+
+boxing_scheme_idx: 1
+
+perturbators:
+  - _target_: perturbator.blackout_perturbator.BlackoutPerturbator
+    boxing_scheme_idx: ${train.boxing_scheme_idx}
+    width: ${dataset.width}
+    height: ${dataset.height}
+  - _target_: perturbator.whiteout_perturbator.WhiteoutPerturbator
+    boxing_scheme_idx: ${train.boxing_scheme_idx}
+    width: ${dataset.width}
+    height: ${dataset.height}
+  - _target_: perturbator.smoothing_perturbator.SmoothingPerturbator
+    boxing_scheme_idx: ${train.boxing_scheme_idx}
+    width: ${dataset.width}
+    height: ${dataset.height}
+  - _target_: perturbator.binarization_perturbator.BinarizationPerturbator
+    boxing_scheme_idx: ${train.boxing_scheme_idx}
+    width: ${dataset.width}
+    height: ${dataset.height}
+  - _target_: perturbator.edge_detection_perturbator.EdgeDetectionPerturbator
+    boxing_scheme_idx: ${train.boxing_scheme_idx}
+    width: ${dataset.width}
+    height: ${dataset.height}
+

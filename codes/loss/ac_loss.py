@@ -6,19 +6,19 @@ from data_info.data_info import DataInfo
 
 
 class ACloss(nn.Module):
-    def __init__(self):
+    def __init__(self, width, height, num_landmarks):
         super(ACloss, self).__init__()
-        self.height = DataInfo.resized_image_size[1]
-        self.width = DataInfo.resized_image_size[0]
-        self.num_landmark_class = DataInfo.num_landmark_class
+        self.width = width
+        self.height = height
+        self.num_landmarks = num_landmarks
 
     def get_angle_matrix(self, inp_mat):
         np_array1 = inp_mat - [self.height / 2, self.width / 2]
         np_array2 = inp_mat - [self.height / 2, self.width / 2]
 
         arccos_val = np.dot(np_array1, np_array2.transpose()) / (
-                    np.linalg.norm(np_array1, axis=1).reshape(np_array1.shape[0], 1) *
-                    np.linalg.norm(np_array2, axis=1))
+            np.linalg.norm(np_array1, axis=1).reshape(np_array1.shape[0], 1) * np.linalg.norm(np_array2, axis=1)
+        )
 
         arccos_val = np.where(arccos_val < -1, -1, arccos_val)
         arccos_val = np.where(arccos_val > 1, 1, arccos_val)
@@ -41,9 +41,9 @@ class ACloss(nn.Module):
         angle_loss = 0.0
         dist_loss = 0.0
         for batch in range(target.size(0)):
-            output_matrix = np.zeros((self.num_landmark_class, 2))
-            target_matrix = np.zeros((self.num_landmark_class, 2))
-            for landmark_num in range(0, self.num_landmark_class):
+            output_matrix = np.zeros((self.num_landmarks, 2))
+            target_matrix = np.zeros((self.num_landmarks, 2))
+            for landmark_num in range(0, self.num_landmarks):
                 output_image = output[batch][landmark_num]
                 output_image = output_image.cpu()
                 target_image = target[batch][landmark_num]

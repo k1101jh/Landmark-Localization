@@ -1,0 +1,10 @@
+constructor:
+  _target_: network.attention_unet.AttentionUNet
+  in_channels: 1
+  out_channels: ${dataset.num_landmarks}
+  channels:
+    - 64
+    - 128
+    - 256
+    - 512
+    - 1024

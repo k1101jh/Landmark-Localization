@@ -1,0 +1,69 @@
+constructor:
+  _target_: DigitalHandAtlasDataset
+  setup: ${setup}
+
+
+paths:
+  original_data:
+    base: "./original_data/Digital_Hand_Atlas"
+    images: ${merge:${dataset.paths.original_data.base}, "/JPEGImage"}
+    setup_dir: ${merge:${dataset.paths.original_data.base}, "x-validation-setup"}
+    setup1_txt: ${merge:${dataset.paths.original_data.base}, "/TrainingData"}
+    setup2_txt: ${merge:${dataset.paths.original_data.base}, "/Test1Data"}
+    setup3_txt: ${merge:${dataset.paths.original_data.base}, "/Test2Data"}
+    annotations: ${merge:${dataset.paths.original_data.base}, "/annotation.idl"}
+
+  # dataset
+  # - gt.npy
+  # - original_size.pkl
+  # - landmark_point.pkl
+  # - resized_landmark_point.pkl
+  # - 1
+  # -- images
+  # -- heatmaps
+  # - 2
+  # -- images
+  # -- heatmaps
+  # - 3
+  # -- images
+  # -- heatmaps
+  dataset: "./dataset/Digital_Hand_Atlas"
+  landmark_point_pkl: ${merge:${dataset.dataset_path}, "/landmark_point.pkl"}
+  resized_landmark_point_pkl: ${merge:${dataset.dataset_path}, "/resized_landmark_point.pkl"}
+  original_size_pkl: ${merge:${dataset.dataset_path}, "/original_size.pkl"}
+  setup1:
+    dataset: ${merge:${dataset.dataset_path}, "/1"}
+    images: ${merge:${dataset.setup1_dataset_path}, "/images"}
+    heatmaps: ${merge:${dataset.setup1_dataset_path}, "/heatmaps"}
+  setup2:
+    dataset: ${merge:${dataset.dataset_path}, "/2"}
+    images: ${merge:${dataset.setup2_dataset_path}, "/images"}
+    heatmaps: ${merge:${dataset.setup2_dataset_path}, "/heatmaps"}
+  setup3:
+    dataset: ${merge:${dataset.dataset_path}, "/3"}
+    images: ${merge:${dataset.setup3_dataset_path}, "/images"}
+    heatmaps: ${merge:${dataset.setup3_dataset_path}, "/heatmaps"}
+
+dataset_types:
+  - "train"
+  - "test"
+
+setup_list:
+  - 1
+  - 2
+  - 3
+
+heatmap_generator:
+  _target_: heatmap_generator.anisotropic_laplace_heatmap_generator.AnisotropicLaplaceHeatmapGenerator
+  width: ${dataset.width}
+  height: ${dataset.height}
+  scale: 2.5
+
+num_landmarks: 37
+
+# size after resize
+width: 640
+height: 800
+
+overwrite: False
+num_processes: 3
