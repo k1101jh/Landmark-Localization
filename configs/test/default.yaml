@@ -1,7 +1,8 @@
-batch_size: 4
-num_workers: 24
-model_save_path: saved_models/${experiment_name}
+batch_size: 2
+num_workers: 3
+statistic_save_filename: "statistic.txt"
+distance_save_filename: "distance.pkl"
 
-load_model_path: NULL
+load_model_path: "outputs/2024-02-01/16-27-58/epoch_700.pth"
 save_result_images: True
 heatmap_threshold: 0.85

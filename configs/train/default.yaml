@@ -1,11 +1,10 @@
-batch_size: 3
-num_workers: 24
-epochs: 1
-test_interval: 20
-save_interval: 20
+batch_size: 2
+num_workers: 6
+epochs: 2000
+test_interval: 50
+save_interval: 100
 save_model: True
-model_save_path: saved_models/${experiment_name}
-profiling: True
+profiling: False
 load_model_path: NULL
 
 num_pow_heatmap: 1

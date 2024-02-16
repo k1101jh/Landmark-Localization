@@ -154,7 +154,7 @@ def train(cfg: DictConfig):
 
             if epoch == 1:
                 img_grid = torchvision.utils.make_grid(inputs)
-                writer.add_image("sample augmentations", img_grid, epoch_samples)
+                writer.add_image("sample augmentations", img_grid, epoch)
 
             writer.add_scalar(phase + " loss", epoch_loss, epoch)
             writer.add_scalar(phase + " w loss", epoch_w_loss, epoch)
@@ -163,9 +163,7 @@ def train(cfg: DictConfig):
 
             # 모델 저장
             if phase == "test":
-                save_filenames = []
-                if epoch % cfg.test_interval:
-                    save_filenames.append(f"epoch_{epoch}.pth")
+                save_filenames = [f"epoch_{epoch}.pth"]
                 if epoch_loss < best_loss:
                     best_loss = epoch_loss
                     save_filenames.append("best_model.pth")
@@ -180,6 +178,9 @@ def train(cfg: DictConfig):
                 for save_filename in save_filenames:
                     save_file_path = os.path.join(work_dir, save_filename)
                     torch.save(state, save_file_path)
+
+                img_grid = torchvision.utils.make_grid([outputs[0, 0, None], labels[0, 0, None]], nrow=2)
+                writer.add_image("test results", img_grid, epoch)
 
         train_pbar.set_description(desc="loss: {:0.8f}".format(epoch_loss) + " w_loss: {:0.8f}".format(epoch_w_loss))
 

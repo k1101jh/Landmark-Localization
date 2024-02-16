@@ -21,7 +21,7 @@ logging.basicConfig(
     datefmt="%I:%M:%S",
 )
 
-HEATMAP_SCALE = 2.5
+HEATMAP_SCALE = 4
 
 
 def generate_ISBI_2015_Cephalometric_dataset():
@@ -29,7 +29,7 @@ def generate_ISBI_2015_Cephalometric_dataset():
     cfg = compose(config_name="config", overrides=["dataset=ISBI_2015_Cephalometric"]).dataset
     print(OmegaConf.to_yaml(cfg))
 
-    def generate_gt_numpy():
+    def generate_landmark_point_file():
         r"""
         랜드마크 좌표를 GT 폴더에 landmark_point_gt_numpy로 저장
         0~149: train 데이터
@@ -92,8 +92,20 @@ def generate_ISBI_2015_Cephalometric_dataset():
                 resized_point_ndarray[gt_file_index][landmark_index] = resized_point
 
         # save
-        np.save(cfg.paths.gt_npy, average_point_ndarray)
-        np.save(cfg.paths.resized_gt_npy, resized_point_ndarray)
+        landmark_point_dict = {}
+        landmark_point_dict["train"] = average_point_ndarray[:150].tolist()
+        landmark_point_dict["test1"] = average_point_ndarray[150:300].tolist()
+        landmark_point_dict["test2"] = average_point_ndarray[300:].tolist()
+        resized_landmark_point_dict = {}
+        resized_landmark_point_dict["train"] = resized_point_ndarray[:150].tolist()
+        resized_landmark_point_dict["test1"] = resized_point_ndarray[150:300].tolist()
+        resized_landmark_point_dict["test2"] = resized_point_ndarray[300:].tolist()
+        landmark_point_df = pd.DataFrame.from_dict(landmark_point_dict, orient="index")
+        landmark_point_df = landmark_point_df.transpose()
+        landmark_point_df.to_pickle(cfg.paths.landmark_point_pkl)
+        resized_landmark_point_df = pd.DataFrame.from_dict(resized_landmark_point_dict, orient="index")
+        resized_landmark_point_df = resized_landmark_point_df.transpose()
+        resized_landmark_point_df.to_pickle(cfg.paths.resized_landmark_point_pkl)
 
     def copy_input_images():
         r"""
@@ -135,25 +147,23 @@ def generate_ISBI_2015_Cephalometric_dataset():
         # heatmap_generator = instantiate(cfg.heatmap_generator)
         heatmap_generator = AnisotropicLaplaceHeatmapGenerator(cfg.width, cfg.height, HEATMAP_SCALE)
 
-        landmark_gt_numpy = np.load(cfg.paths.resized_gt_npy)
-        heatmap_paths = [cfg.paths.train.heatmaps, cfg.paths.test1.heatmaps, cfg.paths.test2.heatmaps]
-        data_type_and_numpy_zip = zip(
-            heatmap_paths,
-            [landmark_gt_numpy[0:150], landmark_gt_numpy[150:300], landmark_gt_numpy[300:400]],
-        )
+        landmark_point_dict = pd.read_pickle(cfg.paths.resized_landmark_point_pkl).to_dict()
 
-        for heatmap_path, gt_numpy in data_type_and_numpy_zip:
-            for i, gt in enumerate(tqdm(gt_numpy)):
-                for j, landmark_point in enumerate(gt):
-                    heatmap_image = heatmap_generator.get_heatmap_image(landmark_point)
-                    heatmap_save_path = os.path.join(heatmap_path, "{:0>2d}".format(j + 1))
-                    os.makedirs(heatmap_save_path, exist_ok=True)
+        for dataset_type in cfg.dataset_types:
+            heatmap_path = cfg.paths[dataset_type].heatmaps
+            all_image_landmark_points = landmark_point_dict[dataset_type]
+            for i, landmark_points in tqdm(all_image_landmark_points.items()):
+                if landmark_points:
+                    for j, landmark_point in enumerate(landmark_points):
+                        heatmap_image = heatmap_generator.get_heatmap_image(landmark_point)
+                        heatmap_save_path = os.path.join(heatmap_path, "{:0>2d}".format(j + 1))
+                        os.makedirs(heatmap_save_path, exist_ok=True)
 
-                    heatmap_image.save(os.path.join(heatmap_save_path, f"{str(i + 1).zfill(3)}.png"))
+                        heatmap_image.save(os.path.join(heatmap_save_path, f"{str(i + 1).zfill(3)}.png"))
 
     os.makedirs(cfg.paths.dataset, exist_ok=True)
     logging.info("Start generating gt numpy files...")
-    generate_gt_numpy()
+    generate_landmark_point_file()
 
     logging.info("Start copying images to dataset folder...")
     copy_input_images()

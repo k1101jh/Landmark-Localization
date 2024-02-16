@@ -60,7 +60,7 @@ class ISBIDataset(Dataset):
         dists = []
         for landmark_point, gt_point in zip(landmark_points, gt_points):
             dist = distance.euclidean(landmark_point, gt_point)
-            dist /= self.pixel_per_mm
+            dist /= self.cfg.dataset.pixel_per_mm
             dists.append(dist)
         return dists
 
@@ -68,6 +68,9 @@ class ISBIDataset(Dataset):
         input_image_path = self.input_image_paths[idx]
         input_image = Image.open(input_image_path)
         heatmaps = []
+        meta_data = {}
+        meta_data["image_path"] = input_image_path
+        meta_data["original_size"] = input_image.size
 
         for heatmap_path in self.heatmap_paths[idx]:
             heatmaps.append(self.to_tensor_transform(Image.open(heatmap_path)))
@@ -96,18 +99,12 @@ class ISBIDataset(Dataset):
 
             if perturbator_idx != -1:
                 perturbator = self.perturbators[perturbator_idx]
-                # perturbator = self.cfg.train.perturbators[perturbator_idx]
-                # input_image = input_image.numpy()
-                # input_image = np.array(input_image)
-                # input_image = self.to_pil_transform(input_image)
                 input_image = perturbator.perturb(input_image)
-                # input_image = self.to_tensor_transform(input_image)
 
             heatmaps = torch.pow(heatmaps, self.cfg.train.num_pow_heatmap)
             heatmaps = heatmaps / heatmaps.max()
 
         else:
             input_image = self.to_tensor_transform(input_image)
-            heatmaps = self.to_tensor_transform(heatmaps)
 
-        return input_image, heatmaps, input_image_path
+        return input_image, heatmaps, meta_data

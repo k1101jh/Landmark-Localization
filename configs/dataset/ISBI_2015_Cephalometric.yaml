@@ -22,11 +22,9 @@ paths:
   # -- images
   # -- heatmaps
   dataset: "./dataset/ISBI_2015_Cephalometric"
-  gt_npy: ${merge:${dataset.paths.dataset}, "/gt.npy"}
-  resized_gt_npy: ${merge:${dataset.paths.dataset}, "/resized_gt.npy"}
-  # landmark_point_pkl: ${merge:${dataset.dataset_path}, "/landmark_point.pkl"}
-  # resized_landmark_point_pkl: ${merge:${dataset.dataset_path}, "/resized_landmark_point.pkl"}
-  # original_size_pkl: ${merge:${dataset.dataset_path}, "/original_size.pkl"}
+  landmark_point_pkl: ${merge:${dataset.paths.dataset}, "/landmark_point.pkl"}
+  resized_landmark_point_pkl: ${merge:${dataset.paths.dataset}, "/resized_landmark_point.pkl"}
+  original_size_pkl: ${merge:${dataset.paths.dataset}, "/original_size.pkl"}
   train:
     dataset: ${merge:${dataset.paths.dataset}, "/train"}
     images: ${merge:${dataset.paths.train.dataset}, "/images"}
