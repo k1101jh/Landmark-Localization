@@ -25,8 +25,6 @@ logging.basicConfig(
     datefmt="%I:%M:%S",
 )
 
-HEATMAP_SCALE = 4
-
 
 def generate_heatmap_multiprocessing(heatmap_generator, landmark_points, heatmap_save_dir_path):
     process_idx = current_process()._identity[0] - 1
