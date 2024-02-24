@@ -1,6 +1,6 @@
 defaults:
   - model: attention_unet
-  - dataset: ISBI_2015_Cephalometric
+  - dataset: Digital_Hand_Atlas
   - optimizer: adamw
   - scheduler: cosine_annealing
   - train: default
@@ -12,7 +12,7 @@ ignore_warnings: False
 profiling: True
 
 train_dataset_type: "train"
-test_dataset_type: "test1"
+test_dataset_type: "test"
 aug: True
 
 # Digital Hand Atlas dataset

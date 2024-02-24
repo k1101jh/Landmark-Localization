@@ -1,13 +1,12 @@
-constructor:
-  _target_: DigitalHandAtlasDataset
-  setup: ${setup}
+_target_: dataset.Digital_Hand_Atlas_dataset.DigitalHandAtlasDataset
+setup: ${setup}
 
 
 paths:
   original_data:
     base: "./original_data/Digital_Hand_Atlas"
-    images: ${merge:${dataset.paths.original_data.base}, "/JPEGImage"}
-    setup_dir: ${merge:${dataset.paths.original_data.base}, "x-validation-setup"}
+    images: ${merge:${dataset.paths.original_data.base}, "/JPEGimages"}
+    setup_dir: ${merge:${dataset.paths.original_data.base}, "/x-validation-setup"}
     setup1_txt: ${merge:${dataset.paths.original_data.base}, "/TrainingData"}
     setup2_txt: ${merge:${dataset.paths.original_data.base}, "/Test1Data"}
     setup3_txt: ${merge:${dataset.paths.original_data.base}, "/Test2Data"}
@@ -28,21 +27,21 @@ paths:
   # -- images
   # -- heatmaps
   dataset: "./dataset/Digital_Hand_Atlas"
-  landmark_point_pkl: ${merge:${dataset.dataset_path}, "/landmark_point.pkl"}
-  resized_landmark_point_pkl: ${merge:${dataset.dataset_path}, "/resized_landmark_point.pkl"}
-  original_size_pkl: ${merge:${dataset.dataset_path}, "/original_size.pkl"}
+  landmark_point_pkl: ${merge:${dataset.paths.dataset}, "/landmark_point.pkl"}
+  resized_landmark_point_pkl: ${merge:${dataset.paths.dataset}, "/resized_landmark_point.pkl"}
+  original_size_pkl: ${merge:${dataset.paths.dataset}, "/original_size.pkl"}
   setup1:
-    dataset: ${merge:${dataset.dataset_path}, "/1"}
-    images: ${merge:${dataset.setup1_dataset_path}, "/images"}
-    heatmaps: ${merge:${dataset.setup1_dataset_path}, "/heatmaps"}
+    dataset: ${merge:${dataset.paths.dataset}, "/1"}
+    images: ${merge:${dataset.paths.setup1.dataset}, "/images"}
+    heatmaps: ${merge:${dataset.paths.setup1.dataset}, "/heatmaps"}
   setup2:
-    dataset: ${merge:${dataset.dataset_path}, "/2"}
-    images: ${merge:${dataset.setup2_dataset_path}, "/images"}
-    heatmaps: ${merge:${dataset.setup2_dataset_path}, "/heatmaps"}
+    dataset: ${merge:${dataset.paths.dataset}, "/2"}
+    images: ${merge:${dataset.paths.setup2.dataset}, "/images"}
+    heatmaps: ${merge:${dataset.paths.setup2.dataset}, "/heatmaps"}
   setup3:
-    dataset: ${merge:${dataset.dataset_path}, "/3"}
-    images: ${merge:${dataset.setup3_dataset_path}, "/images"}
-    heatmaps: ${merge:${dataset.setup3_dataset_path}, "/heatmaps"}
+    dataset: ${merge:${dataset.paths.dataset}, "/3"}
+    images: ${merge:${dataset.paths.setup3.dataset}, "/images"}
+    heatmaps: ${merge:${dataset.paths.setup3.dataset}, "/heatmaps"}
 
 dataset_types:
   - "train"
@@ -57,7 +56,7 @@ heatmap_generator:
   _target_: heatmap_generator.anisotropic_laplace_heatmap_generator.AnisotropicLaplaceHeatmapGenerator
   width: ${dataset.width}
   height: ${dataset.height}
-  scale: 2.5
+  scale: 4
 
 num_landmarks: 37
 

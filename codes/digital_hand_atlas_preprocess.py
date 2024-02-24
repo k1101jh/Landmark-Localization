@@ -25,6 +25,8 @@ logging.basicConfig(
     datefmt="%I:%M:%S",
 )
 
+HEATMAP_SCALE = 4
+
 
 def generate_heatmap_multiprocessing(heatmap_generator, landmark_points, heatmap_save_dir_path):
     process_idx = current_process()._identity[0] - 1
@@ -64,7 +66,7 @@ def generate_digital_hand_atlas_dataset():
             original_image_path = os.path.join(cfg.paths.original_data.images)
             img_class_dir_paths = glob.glob(original_image_path + "/*")
             # {setup}/images 폴더 생성
-            for setup in tqdm(cfg.setup_list, desc="Split data... setup number:", position=0, leave=True):
+            for setup in tqdm(cfg.setup_list, desc="Splitting data...", position=0, leave=True):
                 setup_dir_path = os.path.join(cfg.paths.original_data.setup_dir, str(setup))
 
                 dest_dir_path = os.path.join(cfg.paths.dataset, str(setup), "images")
@@ -110,7 +112,7 @@ def generate_digital_hand_atlas_dataset():
                 image_list = os.listdir(image_dir_path)
                 for image_filename in tqdm(image_list, desc="Getting image size..."):
                     width, height = imagesize.get(os.path.join(image_dir_path, image_filename))
-                    image_sizes[image_filename] = [width, height]
+                    image_sizes[os.path.splitext(image_filename)[0]] = [width, height]
 
             df = pd.DataFrame(image_sizes)
             df.to_pickle(cfg.paths.original_size_pkl)
@@ -151,8 +153,7 @@ def generate_digital_hand_atlas_dataset():
             return
         else:
             # annotation file을 읽어서 랜드마크 위치 알아내기
-            annotation_file_path = os.path.join(cfg.paths.original_data, "annotation.idl")
-            landmark_points_dict = read_annotation_file(annotation_file_path)
+            annotation_landmark_points_dict = read_annotation_file(cfg.paths.original_data.annotations)
 
             # 원본 이미지 크기 dataframe을 dict로 불러오기
             original_image_size_dict = pd.read_pickle(cfg.paths.original_size_pkl).to_dict()
@@ -162,9 +163,7 @@ def generate_digital_hand_atlas_dataset():
             resized_landmark_point_dict = {}
 
             for setup in tqdm(cfg.setup_list, desc="setup number:", position=0):
-                setup_dir_path = setup_dir_path = os.path.join(
-                    cfg.paths.original_data, "x-validation-setup", str(setup)
-                )
+                setup_dir_path = setup_dir_path = os.path.join(cfg.paths.original_data.setup_dir, str(setup))
                 landmark_point_dict[setup] = {}
                 resized_landmark_point_dict[setup] = {}
 
@@ -184,7 +183,7 @@ def generate_digital_hand_atlas_dataset():
                     resized_landmark_point_dict[setup][dataset_type] = {}
 
                     for img_filename in img_filenames:
-                        landmark_points = landmark_points_dict[img_filename]
+                        landmark_points = annotation_landmark_points_dict[img_filename]
                         landmark_point_dict[setup][dataset_type][img_filename] = np.zeros((cfg.num_landmarks, 2))
                         resized_landmark_point_dict[setup][dataset_type][img_filename] = np.zeros(
                             (cfg.num_landmarks, 2)
@@ -252,9 +251,6 @@ def generate_digital_hand_atlas_dataset():
                 desc="overall progress",
             )
             logging.info("Heatmap image generation completed")
-
-    # dataset 폴더 생성
-    os.makedirs(cfg.paths.dataset, exist_ok=True)
 
     # train, test 파일 옮기기
     copy_input_images()

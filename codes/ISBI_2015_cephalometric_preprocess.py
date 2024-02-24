@@ -21,8 +21,6 @@ logging.basicConfig(
     datefmt="%I:%M:%S",
 )
 
-HEATMAP_SCALE = 4
-
 
 def generate_ISBI_2015_Cephalometric_dataset():
     initialize(config_path="../configs", job_name="ISBI_preprocess")
@@ -144,8 +142,7 @@ def generate_ISBI_2015_Cephalometric_dataset():
                                 150~299: test1 데이터
                                 300~399: test2 데이터
         """
-        # heatmap_generator = instantiate(cfg.heatmap_generator)
-        heatmap_generator = AnisotropicLaplaceHeatmapGenerator(cfg.width, cfg.height, HEATMAP_SCALE)
+        heatmap_generator = instantiate(cfg.heatmap_generator)
 
         landmark_point_dict = pd.read_pickle(cfg.paths.resized_landmark_point_pkl).to_dict()
 

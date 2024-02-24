@@ -45,6 +45,12 @@ dataset_types:
 
 num_landmarks: 19
 
+heatmap_generator:
+  _target_: heatmap_generator.anisotropic_laplace_heatmap_generator.AnisotropicLaplaceHeatmapGenerator
+  width: ${dataset.width}
+  height: ${dataset.height}
+  scale: 4
+
 original_width: 1935
 original_height: 2400
 
