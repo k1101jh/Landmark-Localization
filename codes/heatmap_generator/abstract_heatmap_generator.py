@@ -1,21 +1,22 @@
 import numpy as np
 from abc import *
 
-from data_info.data_info import DataInfo
-
 
 class AbstractHeatmapGenerator(metaclass=ABCMeta):
-    def __init__(self):
-        self.width, self.height = DataInfo.resized_image_size
+    def __init__(self, width, height, scale):
+        self.width = width
+        self.height = height
+        self.scale = scale
 
-    def resize_landmark_point(self, landmark_point):
-        resized_landmark_point = [landmark_point[0] * (self.width / DataInfo.original_image_size[0]),
-                                  landmark_point[1] * (self.height / DataInfo.original_image_size[1])]
-
-        return resized_landmark_point
-
-    def generate_dist_matrix(self, landmark_point):
-        resized_landmark_point = self.resize_landmark_point(landmark_point)
+    def generate_dist_matrix(self, landmark_point, resized=True, original_width=None, original_height=None):
+        if resized:
+            resized_landmark_point = landmark_point
+        else:
+            assert original_width != None and original_height != None
+            resized_landmark_point = [
+                landmark_point[0] * (self.width / original_width),
+                landmark_point[1] * (self.height / original_height),
+            ]
 
         x_linespace_mtx = np.arange(-resized_landmark_point[0], self.width - resized_landmark_point[0])
         y_linespace_mtx = np.arange(-resized_landmark_point[1], self.height - resized_landmark_point[1])
@@ -25,5 +26,5 @@ class AbstractHeatmapGenerator(metaclass=ABCMeta):
         return x_axis_mtx, y_axis_mtx
 
     @abstractmethod
-    def get_heatmap_image(self, landmark_point):
+    def get_heatmap_image(self, landmark_point, resized, original_width, original_height):
         pass

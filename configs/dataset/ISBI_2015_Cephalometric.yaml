@@ -1,0 +1,61 @@
+_target_: dataset.ISBI_dataset.ISBIDataset
+
+paths:
+  original_data:
+    base: "./original_data/ISBI_2015_Cephalometric"
+    images: ${merge:${dataset.paths.original_data.base}, "/RawImage"}
+    train_images: ${merge:${dataset.paths.original_data.images}, "/TrainingData"}
+    test1_images: ${merge:${dataset.paths.original_data.images}, "/Test1Data"}
+    test2_images: ${merge:${dataset.paths.original_data.images}, "/Test2Data"}
+    annotations: ${merge:${dataset.paths.original_data.base}, "/AnnotationsByMD"}
+
+  # dataset
+  # - gt.npy
+  # - resized_gt.npy
+  # - train
+  # -- images
+  # -- heatmaps
+  # - test1
+  # -- images
+  # -- heatmaps
+  # - test2
+  # -- images
+  # -- heatmaps
+  dataset: "./dataset/ISBI_2015_Cephalometric"
+  landmark_point_pkl: ${merge:${dataset.paths.dataset}, "/landmark_point.pkl"}
+  resized_landmark_point_pkl: ${merge:${dataset.paths.dataset}, "/resized_landmark_point.pkl"}
+  original_size_pkl: ${merge:${dataset.paths.dataset}, "/original_size.pkl"}
+  train:
+    dataset: ${merge:${dataset.paths.dataset}, "/train"}
+    images: ${merge:${dataset.paths.train.dataset}, "/images"}
+    heatmaps: ${merge:${dataset.paths.train.dataset}, "/heatmaps"}
+  test1:
+    dataset: ${merge:${dataset.paths.dataset}, "/test1"}
+    images: ${merge:${dataset.paths.test1.dataset}, "/images"}
+    heatmaps: ${merge:${dataset.paths.test1.dataset}, "/heatmaps"}
+  test2:
+    dataset: ${merge:${dataset.paths.dataset}, "/test2"}
+    images: ${merge:${dataset.paths.test2.dataset}, "/images"}
+    heatmaps: ${merge:${dataset.paths.test2.dataset}, "/heatmaps"}
+
+dataset_types:
+  - "train"
+  - "test1"
+  - "test2"
+
+num_landmarks: 19
+
+heatmap_generator:
+  _target_: heatmap_generator.anisotropic_laplace_heatmap_generator.AnisotropicLaplaceHeatmapGenerator
+  width: ${dataset.width}
+  height: ${dataset.height}
+  scale: 4
+
+original_width: 1935
+original_height: 2400
+
+# size after resize
+width: 640
+height: 800
+
+pixel_per_mm: 10
